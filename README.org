@@ -1,0 +1,5 @@
+* basis:
+- based on https://gist.github.com/ejohnso49/cfa7c000f9b93c55b71be9116162b2a3
+* see also:
+https://github.com/tangybbq/non-c-on-zephyr/blob/main/shell.nix
+https://github.com/tangybbq/non-c-on-zephyr/blob/main/shell.nix
