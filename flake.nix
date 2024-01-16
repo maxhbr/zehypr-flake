@@ -19,48 +19,13 @@
       packages = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
+          lib = pkgs.lib;
+          stdenv = pkgs.stdenv;
           pp = pkgs.python3.pkgs;
-
-          # Build the Zephyr SDK as a nix package.
-          new-zephyr-sdk-pkg = { stdenv, fetchurl, which, python38, wget, file
-            , cmake, libusb, autoPatchelfHook }:
-            let
-              version = "0.16.4";
-              arch = "arm";
-              sdk = fetchurl {
-                url =
-                  "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${version}/zephyr-sdk-${version}_linux-x86_64_minimal.tar.xz";
-                hash = "sha256-PLnZfwj+ddUq/d09SOdJVaQhtkIUzL30nFrQ4NdTCy0=";
-              };
-              armToolchain = fetchurl {
-                url =
-                  "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${version}/toolchain_linux-aarch64_arm-zephyr-eabi.tar.xz";
-                hash = "sha256-rFxWpeF8g7ByyJWAK0ZeGrI8S9v9x5nehKmUU7hQNrE=";
-              };
-            in stdenv.mkDerivation {
-              name = "zephyr-sdk";
-              inherit version;
-              srcs = [ sdk armToolchain ];
-              srcRoot = ".";
-              nativeBuildInputs =
-                [ which wget file python38 autoPatchelfHook cmake libusb ];
-              phases = [ "installPhase" "fixupPhase" ];
-              installPhase = ''
-                runHook preInstall
-                echo out=$out
-                mkdir -p $out
-                set $srcs
-                tar -xf $1 -C $out --strip-components=1
-                tar -xf $2 -C $out
-                (cd $out; bash ./setup.sh -h)
-                rm $out/zephyr-sdk-x86_64-hosttools-standalone-0.9.sh
-                runHook postInstall
-              '';
-            };
 
           zephyr-sdk = self.packages."${system}".zephyr-sdk;
 
-          python3west = final.python3.withPackages (pp:
+          python3west = pkgs.python3.withPackages (pp:
             with pp; [
               west
 
@@ -130,7 +95,7 @@
               # SEGGER
               pylink-square
             ]);
-          baseInputs = [
+          baseInputs = with pkgs; [
             ninja
             which
             cmake
@@ -141,10 +106,9 @@
             # openocd
             dfu-util
             bossa
-            pkgs.nrfutil
+            # pkgs.nrfutil # UNFREE
             # nRF-Command-Line-Tools
             # jlink
-            segger-jlink
             srecord # for srec_cat
 
             zephyr-sdk
@@ -181,7 +145,7 @@
               '';
             }));
         in {
-          zephyr-sdk = pkgs.callPackage new-zephyr-sdk-pkg { };
+          zephyr-sdk = pkgs.callPackage ./zephyr-sdk.nix { };
           imgtool = pp.buildPythonPackage rec {
             version = "1.10.0";
             pname = "imgtool";
@@ -227,7 +191,7 @@
             let esp32-toolchain = (pkgs.callPackage ./esp32-toolchain.nix { });
             in my-west-fun {
               pnameext = "-esp32";
-              moreBuildInputs = [
+              moreBuildInputs = with pkgs; [
                 esptool
                 esp32-toolchain
                 gawk
@@ -249,6 +213,73 @@
               '';
             };
         });
+
+      homeManagerModules.zephyr = ({ config, lib, pkgs, ... }:
+        let inherit (pkgs.stdenv.hostPlatform) system;
+        in {
+          config = {
+            home.packages = (with pkgs; [
+              picocom
+              minicom
+              # (writeShellScriptBin "flash-nrf52840dongle" ''
+              #   set -euo pipefail
+              #   in=build/zephyr/zephyr.hex
+              #   out=build/zephyr.zip
+              #   if [[ -f "$in" ]]; then
+              #     set -x
+              #     ${pkgs.nrfutil}/bin/nrfutil pkg generate --hw-version 52 --sd-req=0x00 \
+              #             --application "$in" \
+              #             --application-version 1 "$out"
+              #     ${pkgs.nrfutil}/bin/nrfutil dfu usb-serial -pkg "$out" -p "''${1:-/dev/ttyACM0}"
+              #   else
+              #     echo "\$in=$in not found"
+              #   fi
+              # '')
+              (writeShellScriptBin "clang-format" ''
+                exec ${llvmPackages.clang-unwrapped}/bin/clang-format "$@"
+              '')
+              teensy-loader-cli
+              tytools
+            ]) ++ (with self.packages."${system}"; [
+              zephyr-sdk
+              my-west
+              my-west-arm
+              my-west-esp32
+            ]);
+          };
+        });
+
+      nixosModules.zephyr = ({ config, lib, pkgs, ... }:
+        let
+          # platformio-udev-rules = pkgs.writeTextFile {
+          #   name = "platformio-udev-rules";
+          #   text = builtins.readFile
+          #     "${inputs.platformio-core}/platformio/assets/system/99-platformio-udev.rules";
+          #   destination = "/etc/udev/rules.d/99-platformio.rules";
+          # };
+          segger-modemmanager-blacklist-udev-rules = pkgs.writeTextFile {
+            name = "segger-modemmanager-blacklist-udev-rules";
+            # https://docs.zephyrproject.org/2.5.0/guides/tools/nordic_segger.html#gnu-linux
+            text = ''ATTRS{idVendor}=="1366", ENV{ID_MM_DEVICE_IGNORE}="1"'';
+            destination =
+              "/etc/udev/rules.d/99-segger-modemmanager-blacklist.rules";
+          };
+        in {
+          nixpkgs.overlays = [ self.overlay ];
+          nixpkgs.config.allowUnfree = true;
+          nixpkgs.config.segger-jlink.acceptLicense = true;
+          home-manager.sharedModules = [ self.homeManagerModules.zephyr ];
+          services.udev.packages = [
+            # platformio-udev-rules
+            pkgs.platformio
+            segger-modemmanager-blacklist-udev-rules
+            pkgs.openocd
+            # pkgs.segger-jlink
+            pkgs.stlink
+            pkgs.teensy-udev-rules
+          ];
+        });
+
       devShells = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
@@ -257,16 +288,21 @@
 
         in {
           default = pkgs.mkShell {
-            nativeBuildInputs = packages;
+            nativeBuildInputs = with self.packages."${system}"; [
+              zephyr-sdk
+              my-west
+              my-west-arm
+              my-west-esp32
+            ];
 
             # For Zephyr work, we need to initialize some environment variables,
             # and then invoke the zephyr setup script.
             shellHook = ''
               export ZEPHYR_SDK_INSTALL_DIR=${zephyr-sdk}
               export PATH=$PATH:${zephyr-sdk}/arm-zephyr-eabi/bin
-              export VIA_WORKSPACE_PATH="$(realpath ./)"
-              echo "VIA_WORKSPACE_PATH=$VIA_WORKSPACE_PATH"
-              source "$VIA_WORKSPACE_PATH"/zephyr/zephyr-env.sh
+              # export VIA_WORKSPACE_PATH="$(realpath ./)"
+              # echo "VIA_WORKSPACE_PATH=$VIA_WORKSPACE_PATH"
+              # source "$VIA_WORKSPACE_PATH"/zephyr/zephyr-env.sh
             '';
           };
         });
