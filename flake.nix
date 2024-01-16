@@ -265,7 +265,6 @@
               "/etc/udev/rules.d/99-segger-modemmanager-blacklist.rules";
           };
         in {
-          nixpkgs.overlays = [ self.overlay ];
           nixpkgs.config.allowUnfree = true;
           nixpkgs.config.segger-jlink.acceptLicense = true;
           home-manager.sharedModules = [ self.homeManagerModules.zephyr ];
