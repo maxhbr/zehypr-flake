@@ -193,7 +193,7 @@
               pnameext = "-esp32";
               moreBuildInputs = with pkgs; [
                 esptool
-                esp32-toolchain
+                # esp32-toolchain
                 gawk
                 gettext
                 automake
@@ -209,7 +209,7 @@
               wrapperArgs = ''
                 --set NIX_CFLAGS_LINK -lncurses \
                 --set ZEPHYR_TOOLCHAIN_VARIANT "espressif" \
-                --set ESPRESSIF_TOOLCHAIN_PATH "${esp32-toolchain}"
+                --set ESPRESSIF_TOOLCHAIN_PATH "${zephyr-sdk}/xtensa-espressif_esp32_zephyr-elf"
               '';
             };
         });
@@ -278,6 +278,21 @@
             pkgs.teensy-udev-rules
           ];
         });
+
+      apps = forAllSystems (system: {
+        west = {
+          type = "app";
+          program = "${self.packages.${system}.my-west}/bin/west";
+        };
+        west-arm = {
+          type = "app";
+          program = "${self.packages.${system}.my-west-arm}/bin/west-arm";
+        };
+        west-esp32 = {
+          type = "app";
+          program = "${self.packages.${system}.my-west-esp32}/bin/west-esp32";
+        };
+      });
 
       devShells = forAllSystems (system:
         let
