@@ -5,7 +5,14 @@
   outputs = { self, nixpkgs }@inputs:
     let
       # Nixpkgs instantiated for supported system types
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
+      nixpkgsFor = forAllSystems (system: import nixpkgs { 
+        inherit system;
+        config.allowUnfree = true;  # :(
+        config.segger-jlink.acceptLicense = true;
+        config.permittedInsecurePackages = [
+          "segger-jlink-qt4-794a"
+        ];
+      });
 
       lastModifiedDate =
         self.lastModifiedDate or self.lastModified or "19700101";
@@ -103,11 +110,9 @@
             gperf
             ccache
             gmp.dev
-            # openocd
+            openocd
             dfu-util
             bossa
-            # pkgs.nrfutil # UNFREE
-            # nRF-Command-Line-Tools
             # jlink
             srecord # for srec_cat
 
@@ -174,7 +179,13 @@
             };
           in my-west-fun {
             pnameext = "-arm";
-            moreBuildInputs = [ gcc binutils stdenv.cc.cc.lib ];
+            moreBuildInputs = [ 
+              gcc
+              binutils
+              stdenv.cc.cc.lib
+
+              pkgs.nrfutil
+            ];
             wrapperArgs = ''
               --set ZEPHYR_TOOLCHAIN_VARIANT "gnuarmemb" \
               --set GNUARMEMB_TOOLCHAIN_PATH "${arm-toolchain}"
@@ -209,6 +220,16 @@
                 --set ESPRESSIF_TOOLCHAIN_PATH "${zephyr-sdk}/xtensa-espressif_esp32_zephyr-elf"
               '';
             };
+
+
+          # from https://github.com/NixOS/nixpkgs/pull/255185
+          nrf-command-line-tools = pkgs.callPackage ./pkgs_from_pr_255185/nrf-command-line-tools { 
+            segger-jlink = self.packages."${system}".segger-jlink;
+          };
+          nrfconnect = pkgs.callPackage ./pkgs_from_pr_255185/nrfconnect { 
+            segger-jlink = self.packages."${system}".segger-jlink;
+          };
+          segger-jlink = pkgs.callPackage ./pkgs_from_pr_255185/segger-jlink { };
         });
 
       homeManagerModules.zephyr = ({ config, lib, pkgs, ... }:
@@ -242,12 +263,17 @@
               my-west
               my-west-arm
               my-west-esp32
+
+              nrf-command-line-tools
+              nrfconnect
+              segger-jlink
             ]);
           };
         });
 
       nixosModules.zephyr = ({ config, lib, pkgs, ... }:
         let
+          inherit (pkgs.stdenv.hostPlatform) system;
           # platformio-udev-rules = pkgs.writeTextFile {
           #   name = "platformio-udev-rules";
           #   text = builtins.readFile
@@ -273,6 +299,8 @@
             # pkgs.segger-jlink
             pkgs.stlink
             pkgs.teensy-udev-rules
+
+            self.packages."${system}".segger-jlink
           ];
         });
 
