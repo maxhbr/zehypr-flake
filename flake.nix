@@ -187,13 +187,10 @@
           #     --set OPENOCD ${pkgs.openocd}/bin/openocd
           #   '';
           # };
-          my-west-esp32 =
-            let esp32-toolchain = (pkgs.callPackage ./esp32-toolchain.nix { });
-            in my-west-fun {
+          my-west-esp32 = my-west-fun {
               pnameext = "-esp32";
               moreBuildInputs = with pkgs; [
                 esptool
-                # esp32-toolchain
                 gawk
                 gettext
                 automake
@@ -208,7 +205,7 @@
               ];
               wrapperArgs = ''
                 --set NIX_CFLAGS_LINK -lncurses \
-                --set ZEPHYR_TOOLCHAIN_VARIANT "espressif" \
+                --set ZEPHYR_TOOLCHAIN_VARIANT "zephyr" \
                 --set ESPRESSIF_TOOLCHAIN_PATH "${zephyr-sdk}/xtensa-espressif_esp32_zephyr-elf"
               '';
             };

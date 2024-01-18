@@ -34,7 +34,7 @@ let
     inherit hash;
   }) x86_64Toolchains;
 in stdenv.mkDerivation {
-  name = "zephyr-sdk";
+  pname = "zephyr-sdk";
   inherit version;
   system = "x86_64-linux";
   srcs = [ sdk ] ++ toolchains;
@@ -50,14 +50,11 @@ in stdenv.mkDerivation {
     tar -xf $1 -C $out --strip-components=1
     tar -xf $2 -C $out
     tar -xf $3 -C $out
-    (mkdir "$out/xtensa-esp32-elf"
-     cd "$out/xtensa-esp32-elf"
-     relativePath="../xtensa-espressif_esp32_zephyr-elf"
-     while IFS=\'\' read -r -d \'\' binary; do
-       newBinary="$(echo "$binary" | sed "s%$relativePath/%%" | sed "s/xtensa-espressif/xtensa/g" | sed "s/zephyr-elf/elf/g")"
-       mkdir -p "$(dirname "$newBinary")"
-       ln -s "$binary" "$newBinary"
-     done < <(find $relativePath -type f -executable -print0)
+    # to make toolchain compatible with ZEPHYR_TOOLCHAIN_VARIANT="espressif"
+    (cd "$out/xtensa-espressif_esp32_zephyr-elf/bin"
+     while IFS="" read -r -d "" binary; do
+       ln "$binary" "$(echo "$binary" | sed "s/xtensa-espressif_/xtensa-/g" | sed "s/_zephyr-elf/-elf/g")"
+     done < <(find . -type f -executable -print0)
     )
     (cd $out; bash ./setup.sh -h)
     rm $out/zephyr-sdk-x86_64-hosttools-standalone-0.9.sh
