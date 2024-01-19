@@ -169,7 +169,11 @@
             doCheck = false;
             pythonImportsCheck = [ "imgtool" ];
           };
-          my-west = my-west-fun { };
+          my-west = my-west-fun {
+            wrapperArgs = ''
+              --set PKG_CONFIG_EXECUTABLE "${pkgs.perlPackages.PkgConfig}/bin/pkg-config.pl"
+            '';
+          };
           my-west-arm = let
             gcc = pkgs.gcc-arm-embedded;
             binutils = pkgs.pkgsCross.arm-embedded.buildPackages.binutils;
