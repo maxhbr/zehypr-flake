@@ -24,9 +24,21 @@ let
       hash = "sha256-IGHlhTTFf5jxsFtVfZpdDhhzrDizEIQVYtNg+XFflvs=";
     }
     {
+      fn = "toolchain_linux-x86_64_x86_64-zephyr-elf.tar.xz";
+      hash = "sha256-+x/1/m7aUGTX2+wuozqnmXgdZBTjwTSAmo7fgSAk5xk=";
+    }
+    {
       fn = "toolchain_linux-x86_64_xtensa-espressif_esp32_zephyr-elf.tar.xz";
       hash = "sha256-h2sT4tVtvDIguDuB09lZOSyvawQ4a2cOocfJDw7uqvo=";
     }
+    # {
+    #   fn = "toolchain_linux-x86_64_xtensa-espressif_esp32s2_zephyr-elf.tar.xz";
+    #   hash = "";
+    # }
+    # {
+    #   fn = "toolchain_linux-x86_64_xtensa-espressif_esp32s3_zephyr-elf.tar.xz";
+    #   hash = "";
+    # }
   ];
 
   toolchains = map ({fn, hash}: fetchurl {
@@ -50,6 +62,7 @@ in stdenv.mkDerivation {
     tar -xf $1 -C $out --strip-components=1
     tar -xf $2 -C $out
     tar -xf $3 -C $out
+    tar -xf $4 -C $out
     # to make toolchain compatible with ZEPHYR_TOOLCHAIN_VARIANT="espressif"
     (cd "$out/xtensa-espressif_esp32_zephyr-elf/bin"
      while IFS="" read -r -d "" binary; do
