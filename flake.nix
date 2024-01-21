@@ -124,6 +124,14 @@
             zls
             rustup
             glibc_multi
+
+            # native_sim
+            pkg-config
+            SDL2
+            SDL2_gfx
+            SDL2_image
+
+            nrfutil
           ];
           my-west-fun =
             { pnameext ? "", moreBuildInputs ? [ ], wrapperArgs ? "" }:
@@ -171,7 +179,7 @@
           };
           my-west = my-west-fun {
             wrapperArgs = ''
-              --set PKG_CONFIG_EXECUTABLE "${pkgs.perlPackages.PkgConfig}/bin/pkg-config.pl"
+              --set PKG_CONFIG_EXECUTABLE "${pkgs.pkg-config}/bin/pkg-config"
             '';
           };
           my-west-arm = let
@@ -188,12 +196,12 @@
               binutils
               stdenv.cc.cc.lib
 
-              pkgs.nrfutil
+              arm-toolchain
             ];
             wrapperArgs = ''
-              --set ZEPHYR_TOOLCHAIN_VARIANT "gnuarmemb" \
               --set GNUARMEMB_TOOLCHAIN_PATH "${arm-toolchain}"
             '';
+              # --set ZEPHYR_TOOLCHAIN_VARIANT "gnuarmemb" \
           };
           # my-west-riscv = my-west-fun {
           #   pnameext = "-riscv";
