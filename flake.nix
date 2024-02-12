@@ -5,13 +5,16 @@
   outputs = { self, nixpkgs }@inputs:
     let
       # Nixpkgs instantiated for supported system types
+      nixpkgsConfig = {
+          allowUnfree = true;
+          segger-jlink.acceptLicense = true;
+          permittedInsecurePackages = [
+            "segger-jlink-qt4-794a"
+          ];
+        };
       nixpkgsFor = forAllSystems (system: import nixpkgs { 
         inherit system;
-        config.allowUnfree = true;  # :(
-        config.segger-jlink.acceptLicense = true;
-        config.permittedInsecurePackages = [
-          "segger-jlink-qt4-794a"
-        ];
+        config = nixpkgsConfig;
       });
 
       lastModifiedDate =
@@ -290,8 +293,7 @@
               "/etc/udev/rules.d/99-segger-modemmanager-blacklist.rules";
           };
         in {
-          nixpkgs.config.allowUnfree = true;
-          nixpkgs.config.segger-jlink.acceptLicense = true;
+          nixpkgs.config = nixpkgsConfig;
           home-manager.sharedModules = [ self.homeManagerModules.zephyr ];
           services.udev.packages = [
             # platformio-udev-rules
