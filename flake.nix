@@ -309,7 +309,7 @@
             segger-modemmanager-blacklist-udev-rules
             pkgs.openocd
             # pkgs.segger-jlink
-            pkgs.stlink
+            # pkgs.stlink # BROKEN
             pkgs.teensy-udev-rules
 
             self.packages."${system}".segger-jlink
