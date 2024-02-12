@@ -232,16 +232,6 @@
                 --set ESPRESSIF_TOOLCHAIN_PATH "${zephyr-sdk}/xtensa-espressif_esp32_zephyr-elf"
               '';
             };
-
-
-          # from https://github.com/NixOS/nixpkgs/pull/255185
-          nrf-command-line-tools = pkgs.callPackage ./pkgs_from_pr_255185/nrf-command-line-tools { 
-            segger-jlink = self.packages."${system}".segger-jlink;
-          };
-          nrfconnect = pkgs.callPackage ./pkgs_from_pr_255185/nrfconnect { 
-            segger-jlink = self.packages."${system}".segger-jlink;
-          };
-          segger-jlink = pkgs.callPackage ./pkgs_from_pr_255185/segger-jlink { };
         });
 
       homeManagerModules.zephyr = ({ config, lib, pkgs, ... }:
@@ -270,15 +260,15 @@
               '')
               teensy-loader-cli
               tytools
+
+              nrf-command-line-tools
+              nrfconnect
+              segger-jlink
             ]) ++ (with self.packages."${system}"; [
               zephyr-sdk
               my-west
               my-west-arm
               my-west-esp32
-
-              nrf-command-line-tools
-              nrfconnect
-              segger-jlink
             ]);
           };
         });
@@ -312,7 +302,7 @@
             # pkgs.stlink # BROKEN
             pkgs.teensy-udev-rules
 
-            self.packages."${system}".segger-jlink
+            pkgs.segger-jlink
           ];
         });
 
