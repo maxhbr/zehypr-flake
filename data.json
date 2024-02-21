@@ -1,5 +1,5 @@
 {
   "tag": "v0.16.5-1",
   "url": "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5-1/zephyr-sdk-0.16.5-1_linux-x86_64.tar.xz",
-  "sha512": "sha512-qk6qY7xAenAgbgbf3atHtuzLfph5iZ7L/MB3L+JsfKdfgJBKn2QI5II82AKVnwgM6h0a7vXm1M0P6dPGsOObjA=="
+  "hash": "sha512-qk6qY7xAenAgbgbf3atHtuzLfph5iZ7L/MB3L+JsfKdfgJBKn2QI5II82AKVnwgM6h0a7vXm1M0P6dPGsOObjA=="
 }
