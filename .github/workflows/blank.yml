@@ -20,26 +20,26 @@ jobs:
         builder: [.#west]
         version: [main]
         include:
-          - board: [wio_terminal]
-            target: [basic/blinky]
-            builder: [.#west-arm]
-            version: [main]
-          - board: [m5stack_core2]
-            target: [basic/blinky]
-            builder: [.#west-esp32]
-            version: [main]
-          - board: [wio_terminal]
-            target: [basic/blinky]
-            builder: [.#west]
-            version: [v3.6.0]
-          - board: [wio_terminal]
-            target: [basic/blinky]
-            builder: [.#west]
-            version: [v3.5.0]
-          - board: [wio_terminal]
-            target: [basic/blinky]
-            builder: [.#west]
-            version: [v3.4.0]
+          - board: wio_terminal
+            target: basic/blinky
+            builder: .#west-arm
+            version: main
+          - board: m5stack_core2
+            target: basic/blinky
+            builder: .#west-esp32
+            version: main
+          - board: wio_terminal
+            target: basic/blinky
+            builder: .#west
+            version: v3.6.0
+          - board: wio_terminal
+            target: basic/blinky
+            builder: .#west
+            version: v3.5.0
+          - board: wio_terminal
+            target: basic/blinky
+            builder: .#west
+            version: v3.4.0
 
     runs-on: ubuntu-latest
     steps:
