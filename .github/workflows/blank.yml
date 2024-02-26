@@ -11,7 +11,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-sample:
+    fail-fast: false
     strategy:
       matrix:
         board: [wio_terminal, m5stack_core2]
