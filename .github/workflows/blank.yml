@@ -12,13 +12,24 @@ on:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        board: [wio_terminal, m5stack_core2]
+        target: [basic/blinky]
+        builder: [.#west]
+        include:
+          - board: [wio_terminal]
+            target: [basic/blinky]
+            builder: [.#west-arm]
+
     runs-on: ubuntu-latest
     steps:
       - uses: cachix/install-nix-action@v25
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v3
-      - run: nix run .#west -- init -m https://github.com/zephyrproject-rtos/zephyr
-      - run: nix run .#west -- update
-      - run: nix run .#west -- build -b wio_terminal -p always zephyr/samples/basic/blinky 
+      - run: |
+          nix run .#west -- init -m https://github.com/zephyrproject-rtos/zephyr
+          nix run .#west -- update
+      - run: nix run ${{ matrix.builder }} -- build -b ${{ matrix.board }} -p always  zephyr/samples/${{ matrix.target }}
 
