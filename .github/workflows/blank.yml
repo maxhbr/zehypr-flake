@@ -18,13 +18,20 @@ jobs:
         board: [wio_terminal, m5stack_core2, stamp_c3, qemu_x86, native_sim, nrf5340dk_nrf5340_cpuapp]
         target: [basic/blinky]
         builder: [.#west]
+        version: [main]
         include:
           - board: [wio_terminal]
             target: [basic/blinky]
             builder: [.#west-arm]
+            version: [main]
           - board: [m5stack_core2]
             target: [basic/blinky]
             builder: [.#west-esp32]
+            version: [main]
+          - board: [wio_terminal]
+            target: [basic/blinky]
+            builder: [.#west]
+            version: [v3.6.0, v3.5.0, v3.4.0]
 
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +40,7 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v3
       - run: |
-          nix run .#west -- init -m https://github.com/zephyrproject-rtos/zephyr
+          nix run .#west -- init -m https://github.com/zephyrproject-rtos/zephyr --mr ${{ matrix.version }}
           nix run .#west -- update
       - run: nix run ${{ matrix.builder }} -- build -b ${{ matrix.board }} -p always  zephyr/samples/${{ matrix.target }}
 
