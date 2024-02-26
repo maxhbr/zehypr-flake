@@ -12,8 +12,8 @@ on:
 
 jobs:
   build-sample:
-    fail-fast: false
     strategy:
+      fail-fast: false
       matrix:
         board: [wio_terminal, m5stack_core2]
         target: [basic/blinky]
