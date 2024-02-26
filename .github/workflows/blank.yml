@@ -15,13 +15,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        board: [wio_terminal, m5stack_core2, qemu_x86, native_sim, nrf5340dk_nrf5340_cpuapp]
+        board: [wio_terminal, m5stack_core2, stamp_c3, qemu_x86, native_sim, nrf5340dk_nrf5340_cpuapp]
         target: [basic/blinky]
         builder: [.#west]
         include:
           - board: [wio_terminal]
             target: [basic/blinky]
             builder: [.#west-arm]
+          - board: [m5stack_core2]
+            target: [basic/blinky]
+            builder: [.#west-esp32]
 
     runs-on: ubuntu-latest
     steps:
