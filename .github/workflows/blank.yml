@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        board: [wio_terminal, m5stack_core2]
+        board: [wio_terminal, m5stack_core2, qemu_x86, native_sim, nrf5340dk_nrf5340_cpuapp]
         target: [basic/blinky]
         builder: [.#west]
         include:
