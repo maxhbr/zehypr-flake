@@ -10,6 +10,7 @@
           segger-jlink.acceptLicense = true;
           permittedInsecurePackages = [
             "segger-jlink-qt4-794a"
+            "segger-jlink-qt4-794l"
           ];
         };
       nixpkgsFor = forAllSystems (system: import nixpkgs { 
