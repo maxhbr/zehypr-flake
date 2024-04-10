@@ -2,7 +2,7 @@
 }:
 let
   version = "0.16.5-1";
-  json = builtins.fromJSON (builtins.readFile (./data.json));
+  json = builtins.fromJSON (builtins.readFile (./zephyr-sdk.version.json));
   sdk = fetchurl {
     inherit (json) url hash;
   };
